@@ -8,8 +8,12 @@ dotenv.config();
 // Import database connection
 const connectDB = require('./config/database');
 
+// Import seed data
+const { seedPlaces } = require('./data/placesSeed');
+
 // Import routes
 const authRoutes = require('./routes/auth');
+const placesRoutes = require('./routes/places');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/places', placesRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
@@ -32,6 +37,26 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     status: 'healthy'
   });
+});
+
+// Seed data route (for development)
+app.post('/api/seed/places', async (req, res) => {
+  try {
+    const places = await seedPlaces();
+    res.status(200).json({
+      success: true,
+      message: 'Places seeded successfully',
+      data: {
+        count: places.length
+      }
+    });
+  } catch (error) {
+    console.error('Seeding error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error seeding places'
+    });
+  }
 });
 
 // 404 handler

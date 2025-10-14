@@ -1,16 +1,22 @@
 import { useState } from 'react'
+import DestinationSearch from '../components/DestinationSearch'
 import '../stylesheets/Dashboard.css'
 
 function Dashboard() {
-  const [place, setPlace] = useState('')
+  const [selectedDestination, setSelectedDestination] = useState(null)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
 
+  const handleDestinationSelect = (destination) => {
+    setSelectedDestination(destination)
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (place && startDate && endDate) {
-      console.log('Travel Details:', { place, startDate, endDate })
+    if (selectedDestination && startDate && endDate) {
       // Here you can add logic to process the travel details
+      // For now, just show success message
+      alert('Trip details saved successfully!')
     } else {
       alert('Please fill in all fields')
     }
@@ -31,28 +37,19 @@ function Dashboard() {
 
           {/* Trip Planning Form */}
           <section className="planning-section">
-            <div className="section-header">
-              <h3>Start Planning</h3>
-              <p>Tell us about your dream destination and travel dates</p>
-            </div>
-            
             <form className="planning-form" onSubmit={handleSubmit}>
               <div className="form-grid">
                 <div className="form-group destination-group">
-                  <label htmlFor="place">
+                  <label>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                       <circle cx="12" cy="10" r="3"/>
                     </svg>
                     Destination
                   </label>
-                  <input
-                    type="text"
-                    id="place"
-                    value={place}
-                    onChange={(e) => setPlace(e.target.value)}
+                  <DestinationSearch 
+                    onDestinationSelect={handleDestinationSelect}
                     placeholder="Where would you like to go?"
-                    required
                   />
                 </div>
 
@@ -102,33 +99,6 @@ function Dashboard() {
                 Plan My Trip
               </button>
             </form>
-          </section>
-
-          {/* Quick Stats */}
-          <section className="stats-section">
-            <div className="stats-grid">
-              <div className="stat-card">
-                <div className="stat-icon">✈️</div>
-                <div className="stat-content">
-                  <h4>Destinations</h4>
-                  <p>Explore 1000+ amazing places</p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">🏨</div>
-                <div className="stat-content">
-                  <h4>Accommodations</h4>
-                  <p>Find the perfect stay</p>
-                </div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-icon">🎯</div>
-                <div className="stat-content">
-                  <h4>Personalized</h4>
-                  <p>Tailored to your preferences</p>
-                </div>
-              </div>
-            </div>
           </section>
         </div>
       </main>
