@@ -13,6 +13,16 @@ const API_CONFIG = {
     UPDATE_PROFILE: import.meta.env.VITE_UPDATE_PROFILE_ENDPOINT || '/profile',
     CHANGE_PASSWORD: import.meta.env.VITE_CHANGE_PASSWORD_ENDPOINT || '/change-password',
   },
+
+  // Trip Endpoints
+  TRIP_ENDPOINTS: {
+    CREATE: import.meta.env.VITE_CREATE_TRIP_ENDPOINT || '/trips',
+    GET_ALL: import.meta.env.VITE_GET_TRIPS_ENDPOINT || '/trips',
+    GET_ONE: import.meta.env.VITE_GET_TRIP_ENDPOINT || '/trips',
+    UPDATE: import.meta.env.VITE_UPDATE_TRIP_ENDPOINT || '/trips',
+    DELETE: import.meta.env.VITE_DELETE_TRIP_ENDPOINT || '/trips',
+    REGENERATE: import.meta.env.VITE_REGENERATE_TRIP_ENDPOINT || '/trips',
+  },
   
   // App Configuration
   APP_NAME: import.meta.env.VITE_APP_NAME || 'Travel Itinerary Planner',

@@ -1,0 +1,21 @@
+.share-container{min-height:100vh;background:#f8fafc;font-family:Inter,system-ui,Segoe UI,Roboto,sans-serif}
+.share-header{padding:2rem 1rem;text-align:center;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.share-header h1{margin:0 0 .25rem;font-size:1.75rem}
+.share-header p{margin:0;opacity:.9}
+.share-content{max-width:900px;margin:0 auto;padding:1rem}
+.share-day{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1rem;margin-bottom:1rem}
+.day-title{font-weight:700;margin-bottom:.5rem}
+.share-card{border:1px solid #e5e7eb;border-radius:10px;padding:.75rem;margin:.5rem 0}
+.share-card-title{font-weight:600;color:#111827}
+.share-card-sub{color:#6b7280;font-size:.9rem}
+.share-card-time{margin-top:.5rem;display:flex;gap:.5rem;flex-wrap:wrap}
+.pill{font-size:.8rem;background:#f3f4f6;color:#111827;border:1px solid #e5e7eb;border-radius:999px;padding:.15rem .5rem}
+.pill.travel{background:#eef2ff;color:#3730a3;border-color:#e0e7ff}
+.slot{margin:.5rem 0;font-weight:600}
+.slot.breakfast{color:#155e75}
+.slot.dinner{color:#3730a3}
+.loader{width:28px;height:28px;border:3px solid #e5e7eb;border-top:3px solid #6366f1;border-radius:50%;animation:spin 1s linear infinite;margin-right:.5rem;display:inline-block}
+@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+@media(max-width:600px){.share-content{padding:.75rem}.share-card{padding:.6rem}}
+
+

@@ -1,0 +1,364 @@
+/* Trip Details Page Styles */
+
+.trip-details {
+  min-height: 100vh;
+  background: #ffffff;
+  padding: 2rem 0;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f4f6;
+  border-top: 4px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.trip-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  margin-bottom: 2rem;
+}
+
+.back-btn {
+  background: #6b7280;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.back-btn:hover {
+  background: #4b5563;
+}
+
+.trip-info h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.trip-meta {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.trip-meta span {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.status-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge.draft {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.generating {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.status-badge.planned {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.completed {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.trip-preferences {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  margin-bottom: 2rem;
+  background: #f9fafb;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+
+.trip-preferences h3 {
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.trip-preferences p {
+  color: #6b7280;
+  line-height: 1.6;
+}
+
+.itinerary {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+.itinerary h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 2rem;
+}
+
+.day-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.day-header h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0;
+}
+
+.day-date {
+  color: #6b7280;
+  font-size: 1rem;
+}
+
+.activities,
+.meals,
+.accommodation,
+.transportation,
+.day-notes {
+  margin-bottom: 1.5rem;
+}
+
+.activities h4,
+.meals h4,
+.accommodation h4,
+.transportation h4,
+.day-notes h4 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1rem;
+}
+
+.activity {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.activity-time {
+  font-weight: 600;
+  color: #3b82f6;
+  min-width: 80px;
+  font-size: 0.875rem;
+}
+
+.activity-details {
+  flex: 1;
+}
+
+.activity-details h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.activity-location {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.activity-description {
+  color: #4b5563;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+}
+
+.activity-meta {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.activity-duration,
+.activity-type,
+.activity-cost {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.activity-duration {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+.activity-type {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.activity-cost {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.meal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.meal {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.meal-type {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.meal-details {
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.accommodation-details,
+.transportation-details {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.accommodation-details h5,
+.transportation-details h5 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.5rem;
+}
+
+.accommodation-details p,
+.transportation-details p {
+  color: #6b7280;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.accommodation-cost,
+.transportation-cost {
+  font-weight: 600;
+  color: #059669;
+}
+
+.day-notes p {
+  color: #6b7280;
+  line-height: 1.6;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.no-itinerary {
+  text-align: center;
+  padding: 3rem;
+  color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .trip-details {
+    padding: 1rem 0;
+  }
+
+  .trip-header,
+  .trip-preferences,
+  .itinerary {
+    padding: 0 1rem;
+  }
+
+  .trip-info h1 {
+    font-size: 2rem;
+  }
+
+  .trip-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .day-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .activity {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .activity-time {
+    min-width: auto;
+  }
+
+  .meal-grid {
+    grid-template-columns: 1fr;
+  }
+}

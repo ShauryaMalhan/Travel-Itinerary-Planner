@@ -5,6 +5,10 @@ import Navbar from './services/Navbar'
 import Dashboard from './common/Dashboard'
 import Login from './common/Login'
 import Register from './common/Register'
+import TripDetails from './common/TripDetails'
+import ActivitySelection from './common/ActivitySelection'
+import ShareView from './common/ShareView'
+import ItineraryPlanner from './common/ItineraryPlanner'
 
 function AppContent() {
   const { isAuthenticated, loading } = useAuth()
@@ -42,6 +46,32 @@ function AppContent() {
             path="/" 
             element={
               isAuthenticated ? <Dashboard /> : <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/activity-selection" 
+            element={
+              isAuthenticated ? <ActivitySelection /> : <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/trip-details" 
+            element={
+              isAuthenticated ? <TripDetails /> : <Navigate to="/login" replace />
+            } 
+          />
+          {/* Public share route */}
+          <Route path="/s/:id" element={<ShareView />} />
+          <Route 
+            path="/planner" 
+            element={
+              isAuthenticated ? <ItineraryPlanner /> : <Navigate to="/login" replace />
+            } 
+          />
+          <Route 
+            path="/trip/:id" 
+            element={
+              isAuthenticated ? <TripDetails /> : <Navigate to="/login" replace />
             } 
           />
         </Routes>

@@ -171,9 +171,6 @@ function DestinationSearch({ onDestinationSelect, placeholder = "Where would you
                 )}
               </div>
               <div className="destination-rating">
-                <div className="category-badge">
-                  {destination.category.charAt(0).toUpperCase() + destination.category.slice(1)}
-                </div>
                 {destination.rating > 0 && (
                   <div className="rating">
                     ⭐ {destination.rating.toFixed(1)}
@@ -182,6 +179,9 @@ function DestinationSearch({ onDestinationSelect, placeholder = "Where would you
                 {destination.isPopular && (
                   <div className="popular-badge">Popular</div>
                 )}
+                <div className="category-badge">
+                  {destination.category.charAt(0).toUpperCase() + destination.category.slice(1)}
+                </div>
               </div>
             </div>
           ))}
