@@ -81,7 +81,7 @@ const activitySchema = new mongoose.Schema({
     currency: {
       type: String,
       required: [true, 'Currency is required'],
-      default: 'USD',
+      default: 'INR',
       uppercase: true
     },
     type: {

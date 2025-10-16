@@ -16,6 +16,39 @@
 .slot.dinner{color:#3730a3}
 .loader{width:28px;height:28px;border:3px solid #e5e7eb;border-top:3px solid #6366f1;border-radius:50%;animation:spin 1s linear infinite;margin-right:.5rem;display:inline-block}
 @keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
-@media(max-width:600px){.share-content{padding:.75rem}.share-card{padding:.6rem}}
+/* Notes Section */
+.share-notes {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-top: 1rem;
+}
+
+.share-notes h3 {
+  margin: 0 0 1rem 0;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.notes-content {
+  color: #374151;
+  line-height: 1.6;
+}
+
+.notes-content p {
+  margin: 0 0 0.5rem 0;
+}
+
+.notes-content p:last-child {
+  margin-bottom: 0;
+}
+
+@media(max-width:600px){
+  .share-content{padding:.75rem}
+  .share-card{padding:.6rem}
+  .share-notes{padding:1rem}
+}
 
 

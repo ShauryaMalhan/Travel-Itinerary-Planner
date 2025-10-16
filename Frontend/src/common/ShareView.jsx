@@ -67,6 +67,18 @@ export default function ShareView() {
             )}
           </section>
         ))}
+        
+        {/* Notes Section */}
+        {data.notes && (
+          <section className="share-notes">
+            <h3>📝 Trip Notes</h3>
+            <div className="notes-content">
+              {data.notes.split('\n').map((line, idx) => (
+                <p key={idx}>{line || '\u00A0'}</p>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   )

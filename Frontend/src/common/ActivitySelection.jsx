@@ -313,7 +313,7 @@ function ActivitySelection() {
               <div className="stat">
                 <span className="stat-label">Total Cost:</span>
                 <span className="stat-value">
-                  {selectedActivities.length > 0 ? formatCost({ cost: { amount: calculateTotalCost(), currency: 'USD', type: 'paid' } }) : '$0'}
+                  {selectedActivities.length > 0 ? formatCost({ cost: { amount: calculateTotalCost(), currency: 'INR', type: 'paid' } }) : '₹0'}
                 </span>
               </div>
             </div>

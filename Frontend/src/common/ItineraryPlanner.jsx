@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import '../stylesheets/ItineraryPlanner.css'
 
@@ -54,6 +54,7 @@ export default function ItineraryPlanner() {
   const [shareUrl, setShareUrl] = useState('')
   const [shareLoading, setShareLoading] = useState(false)
   const [shareError, setShareError] = useState('')
+  const [notes, setNotes] = useState('')
 
   useEffect(() => {
     if (!selectedActivities || !totalDays) return
@@ -94,8 +95,18 @@ export default function ItineraryPlanner() {
 
   // DnD handlers (HTML5 drag)
   const [dragItem, setDragItem] = useState(null)
+  const [dragOverDay, setDragOverDay] = useState(null)
 
   const onDragStart = (dayIdx, itemIdx) => setDragItem({ dayIdx, itemIdx })
+
+  const onDragOver = (e, dayIdx) => {
+    e.preventDefault()
+    setDragOverDay(dayIdx)
+  }
+
+  const onDragLeave = () => {
+    setDragOverDay(null)
+  }
 
   const onDropOnDay = (targetDayIdx) => {
     if (!dragItem) return
@@ -103,23 +114,49 @@ export default function ItineraryPlanner() {
       const next = prev.map(d => ({ ...d, items: [...d.items] }))
       const [moved] = next[dragItem.dayIdx].items.splice(dragItem.itemIdx, 1)
       if (!moved) return prev
-      if (next[targetDayIdx].items.length >= 3) return prev
+      
+      // Check if target day already has 3 activities (max limit)
+      if (next[targetDayIdx].items.length >= 3) {
+        // Show visual feedback that drop was rejected
+        console.log('Cannot drop: Day already has 3 activities')
+        return prev
+      }
+      
+      // Add activity to target day
       next[targetDayIdx].items.push(moved)
-      // Recompute schedules for affected columns
-      next[dragItem.dayIdx] = { ...next[dragItem.dayIdx], schedule: buildScheduleForDay(next[dragItem.dayIdx].items) }
-      next[targetDayIdx] = { ...next[targetDayIdx], schedule: buildScheduleForDay(next[targetDayIdx].items) }
+      
+      // Recompute schedules for both affected days using the new custom logic
+      next[dragItem.dayIdx] = { 
+        ...next[dragItem.dayIdx], 
+        schedule: buildScheduleForDay(next[dragItem.dayIdx].items) 
+      }
+      next[targetDayIdx] = { 
+        ...next[targetDayIdx], 
+        schedule: buildScheduleForDay(next[targetDayIdx].items) 
+      }
+      
       return next
     })
     setDragItem(null)
+    setDragOverDay(null)
   }
 
   const onSwapWithinDay = (dayIdx, fromIdx, toIdx) => {
     setDays(prev => {
       const next = prev.map(d => ({ ...d, items: [...d.items] }))
       const items = next[dayIdx].items
+      
+      // Perform the swap
       const [moved] = items.splice(fromIdx, 1)
       items.splice(toIdx, 0, moved)
-      next[dayIdx] = { ...next[dayIdx], schedule: buildScheduleForDay(items) }
+      
+      // Recalculate schedule for this day with the new order
+      // This will apply the custom scheduling logic: 1st activity at 10 AM, lunch after, then remaining activities
+      next[dayIdx] = { 
+        ...next[dayIdx], 
+        schedule: buildScheduleForDay(items) 
+      }
+      
       return next
     })
   }
@@ -127,12 +164,11 @@ export default function ItineraryPlanner() {
   // -------- Scheduling enhancements --------
   const dayStartMinutes = 9 * 60 + 30 // 09:30
   const dayEndMinutes = 22 * 60 // allow dinner past 8 PM
-  const lunchWindowStart = 14 * 60 // 2 PM
-  const lunchWindowEnd = 16 * 60 // 4 PM
-  const lunchDurationMinutes = 60
+  // Lunch is now scheduled dynamically after first activity
+  const lunchDurationMinutes = 60 // 1 hour lunch break
   const breakfastEndMax = 10 * 60 // before 10 AM
   const breakfastDurationMinutes = 30
-  const dinnerStartMin = 20 * 60 // after 8 PM
+  const dinnerStartMin = 21 * 60 // after 9 PM
   const dinnerDurationMinutes = 60
 
   function estimateTravelMinutes(a, b) {
@@ -182,98 +218,111 @@ export default function ItineraryPlanner() {
     return `${hh}:${m.toString().padStart(2, '0')} ${am ? 'AM' : 'PM'}`
   }
 
-  function orderFeasibleDay(items = []) {
+
+  function buildScheduleForDay(items = []) {
+    // Don't sort the items - keep them in the order they were provided (drag and drop order)
     const safeItems = items.filter(Boolean)
-    if (safeItems.length <= 1) return safeItems
-    // Start from activity with earliest opening
-    const withOpen = safeItems.map((a, idx) => ({ a, open: parseOpeningWindow(a)[0], key: a?._id || a?.id || `${a?.name || 'item'}-${idx}` }))
-    withOpen.sort((x, y) => x.open - y.open)
-    const start = withOpen[0].a
-    const idFor = (a, idx) => (a?._id || a?.id || `${a?.name || 'item'}-${idx}`)
-    const remaining = new Set(safeItems.map((x, i) => idFor(x, i)))
-    remaining.delete(idFor(start, safeItems.indexOf(start)))
-    const ordered = [start]
-    let current = start
-    while (remaining.size) {
-      let best = null
-      let bestScore = Infinity
-      for (let i = 0; i < safeItems.length; i++) {
-        const a = safeItems[i]
-        const key = idFor(a, i)
-        if (!remaining.has(key)) continue
-        const t = estimateTravelMinutes(current, a)
-        if (t < bestScore) { bestScore = t; best = a }
-      }
-      ordered.push(best)
-      remaining.delete(idFor(best, safeItems.indexOf(best)))
-      current = best
-    }
-    return ordered
-  }
-
-  function buildScheduleForDay(items = [], compressTotalMinutes = 0) {
-    const ordered = orderFeasibleDay(items)
-    let time = dayStartMinutes
     const schedule = []
-    let prev = null
-    let tookLunch = false
+    
+    // Debug logging
+    console.log('Building schedule for items:', safeItems.map(item => item.name))
+    
+    // Breakfast (always before first activity; must end before 10:00)
+    const breakfastEnd = Math.min(breakfastEndMax, dayStartMinutes)
+    const breakfastStart = Math.max(dayStartMinutes - breakfastDurationMinutes, breakfastEnd - breakfastDurationMinutes)
 
-    // Evenly distribute compression across activities (do not go below 45m)
-    const baseDurations = ordered.map(a => Math.ceil((a?.duration || 1) * 60) + 60)
-    const perItemReduce = ordered.length ? Math.floor(compressTotalMinutes / ordered.length) : 0
-    const minActivityMinutes = 45
+    if (safeItems.length === 0) {
+      return { entries: schedule, breakfast: { start: breakfastStart, end: breakfastEnd }, dinner: null }
+    }
 
-  // Breakfast (always before first activity; must end before 10:00)
-  const breakfastEnd = Math.min(breakfastEndMax, dayStartMinutes)
-  const breakfastStart = Math.max(dayStartMinutes - breakfastDurationMinutes, breakfastEnd - breakfastDurationMinutes)
+    // Custom scheduling logic as requested:
+    // 1. First activity starts at 10 AM with its natural duration
+    // 2. Lunch for 1 hour after first activity
+    // 3. Maximum 2 more activities after lunch (3 total per day)
 
-    for (let idx = 0; idx < ordered.length; idx++) {
-      const a = ordered[idx]
-      const travel = estimateTravelMinutes(prev, a)
-      time += travel
+    const firstActivity = safeItems[0] // Use the first item in the array (drag and drop order)
+    const remainingActivities = safeItems.slice(1, 3) // Only take max 2 more activities (total 3)
+    
+    // First activity: Start at 10 AM (10 * 60 = 600 minutes)
+    const firstActivityStart = 10 * 60 // 10:00 AM
+    const firstActivityDuration = Math.ceil((firstActivity?.duration || 1) * 60) + 60 // activity duration + 1 hour buffer
+    const firstActivityEnd = firstActivityStart + firstActivityDuration
+    
+    // Schedule first activity
+    console.log(`First activity: ${firstActivity.name} from ${minutesToLabel(firstActivityStart)} to ${minutesToLabel(firstActivityEnd)}`)
+    schedule.push({
+      activity: firstActivity,
+      start: firstActivityStart,
+      end: firstActivityEnd,
+      travelMin: 0, // No travel time for first activity
+      timeWarning: null
+    })
 
-      // Smart lunch insertion in 2–4 PM window
-      if (!tookLunch) {
-        const [open] = parseOpeningWindow(a)
-        const wait = Math.max(0, open - time)
-        const latestStart = lunchWindowEnd - lunchDurationMinutes
-        if (time >= lunchWindowStart && time <= latestStart) {
-          schedule.push({ lunch: true, start: time, end: time + lunchDurationMinutes })
-          time += lunchDurationMinutes
-          tookLunch = true
-        } else if (time < lunchWindowStart) {
-          if (time + Math.min(wait, 30) > lunchWindowStart) {
-            schedule.push({ lunch: true, start: lunchWindowStart, end: lunchWindowStart + lunchDurationMinutes })
-            time = lunchWindowStart + lunchDurationMinutes
-            tookLunch = true
-          }
-        } else if (time > lunchWindowEnd) {
-          // Missed window; display lunch info but don't shift time
-          schedule.push({ lunch: true, start: lunchWindowStart, end: lunchWindowStart + lunchDurationMinutes, displayOnly: true })
-          tookLunch = true
-        }
-      }
+    // Lunch: 1 hour after first activity ends
+    const lunchStart = firstActivityEnd + 15 // 15 min buffer
+    const lunchEnd = lunchStart + lunchDurationMinutes
+    schedule.push({ lunch: true, start: lunchStart, end: lunchEnd })
 
-      const [open, close] = parseOpeningWindow(a)
-      if (time < open) time = open // wait until open
+    // Schedule remaining activities after lunch (max 2 more)
+    let currentTime = lunchEnd + 15 // 15 min buffer after lunch
+    let prevActivity = firstActivity
 
-      let dur = baseDurations[idx]
-      if (perItemReduce > 0) {
-        dur = Math.max(minActivityMinutes, dur - perItemReduce)
-      }
+    for (let idx = 0; idx < remainingActivities.length; idx++) {
+      const activity = remainingActivities[idx]
+      const travel = estimateTravelMinutes(prevActivity, activity)
+      currentTime += travel
+
+      const [open, close] = parseOpeningWindow(activity)
+      if (currentTime < open) currentTime = open // wait until open
+
+      const activityDuration = Math.ceil((activity?.duration || 1) * 60) + 60
+      const activityEnd = currentTime + activityDuration
+      
+      // Check if activity can complete before 9 PM (21:00)
+      const ninePM = 21 * 60
+      const timeToNinePM = ninePM - currentTime
+      const canCompleteBeforeNine = activityDuration <= timeToNinePM
 
       const dayClose = dayEndMinutes
       const hardClose = Math.min(close, dayClose)
-      const end = time + dur
-
-      if (end > hardClose) {
-        schedule.push({ start: null, end: null, travelMin: travel, unavailable: true })
+      
+      if (activityEnd > hardClose) {
+        // Show remaining time until 9PM instead of marking as unavailable
+        const remainingTimeToNinePM = ninePM - currentTime
+        schedule.push({ 
+          activity: activity, 
+          start: currentTime, 
+          end: currentTime + Math.min(activityDuration, remainingTimeToNinePM), 
+          travelMin: travel, 
+          remainingTime: remainingTimeToNinePM,
+          timeWarning: remainingTimeToNinePM < activityDuration ? {
+            timeToNinePM: remainingTimeToNinePM,
+            shortfall: activityDuration - remainingTimeToNinePM
+          } : null
+        })
+        // Update currentTime even for truncated activities
+        currentTime = currentTime + Math.min(activityDuration, remainingTimeToNinePM) + 15
       } else {
-        schedule.push({ start: time, end, travelMin: travel })
-        time = end + 15 // buffer between activities
+        // Add time warning if activity can't complete before 9 PM
+        const timeWarning = !canCompleteBeforeNine ? {
+          timeToNinePM: timeToNinePM,
+          shortfall: activityDuration - timeToNinePM
+        } : null
+        
+        console.log(`Activity ${idx + 2}: ${activity.name} from ${minutesToLabel(currentTime)} to ${minutesToLabel(activityEnd)}`)
+        schedule.push({ 
+          activity: activity, 
+          start: currentTime, 
+          end: activityEnd, 
+          travelMin: travel,
+          timeWarning: timeWarning
+        })
+        currentTime = activityEnd + 15 // buffer between activities
       }
-      prev = a
+      
+      prevActivity = activity
     }
+
     // Dinner: always after 8 PM and after last item
     const lastSched = [...schedule].reverse().find(s => !s.unavailable && !s.lunch)
     let dinnerStart = Math.max(dinnerStartMin, lastSched ? lastSched.end + 15 : dinnerStartMin)
@@ -324,6 +373,7 @@ export default function ItineraryPlanner() {
       }
       return next
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days.length])
 
   if (!selectedActivities || !totalDays || !tripData) {
@@ -342,7 +392,7 @@ export default function ItineraryPlanner() {
     <div className="planner">
       <div className="planner-header">
         <h1>Plan Your {totalDays}-Day Itinerary</h1>
-        <p>Drag activities between days. Max 3 per day. Schedule respects opening hours and travel time estimates.</p>
+        <p>Drag activities between days. Max 3 per day. Custom schedule: 1st activity at 10 AM, lunch after, then max 2 more activities.</p>
         <div style={{marginTop:'10px', display:'flex', gap:'8px', justifyContent:'center', flexWrap:'wrap'}}>
           <button
             className="mini-btn"
@@ -355,7 +405,8 @@ export default function ItineraryPlanner() {
                   title: `${tripData?.destination?.name || tripData?.destination?.city || 'Trip'} Itinerary`,
                   destination: tripData?.destination || {},
                   totalDays: totalDays,
-                  days: days.map(d => ({ items: d.items, schedule: d.schedule }))
+                  days: days.map(d => ({ items: d.items, schedule: d.schedule })),
+                  notes: notes
                 }
                 const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/share`, {
                   method: 'POST',
@@ -390,15 +441,19 @@ export default function ItineraryPlanner() {
         {days.map((day, dayIdx) => (
           <div
             key={day.id}
-            className="planner-column"
-            onDragOver={(e) => e.preventDefault()}
+            className={`planner-column ${dragOverDay === dayIdx ? 'drag-over' : ''} ${day.items.length >= 3 ? 'full' : ''}`}
+            onDragOver={(e) => onDragOver(e, dayIdx)}
+            onDragLeave={onDragLeave}
             onDrop={() => onDropOnDay(dayIdx)}
           >
-            <div className="column-header">Day {dayIdx + 1}</div>
+            <div className="column-header">
+              Day {dayIdx + 1}
+              {day.items.length >= 3 && <span className="full-indicator"> (Full)</span>}
+            </div>
             <div className="column-body">
               {/* Breakfast badge */}
               {day.schedule?.breakfast && (
-                <div className="card-time" style={{marginBottom: '6px'}}>
+                <div className="card-time breakfast-card">
                   <span className="time-badge breakfast">Breakfast {minutesToLabel(day.schedule.breakfast.start)} – {minutesToLabel(day.schedule.breakfast.end)}</span>
                 </div>
               )}
@@ -407,55 +462,79 @@ export default function ItineraryPlanner() {
                 const dl = day.schedule?.entries?.find(e => e.lunch && e.displayOnly)
                 if (!dl) return null
                 return (
-                  <div className="card-time" style={{marginBottom: '6px'}}>
-                    <span className="time-badge lunch">Lunch {minutesToLabel(dl.start)} – {minutesToLabel(dl.end)}</span>
+                  <div className="card-time lunch-card">
+                    <span className="time-badge lunch">Lunch {minutesToLabel(dl.start)} – {minutesToLabel(dl.end)} (Missed)</span>
                   </div>
                 )
               })()}
-              {day.items.map((a, itemIdx) => {
-                if (!a) return null
-                const entry = day.schedule?.entries?.[itemIdx]
-                const key = a?._id || a?.id || `${a?.name || 'item'}-${itemIdx}`
-                return (
-                <div
-                  key={key}
-                  className="planner-card"
-                  draggable
-                  onDragStart={() => onDragStart(dayIdx, itemIdx)}
-                >
-                  <div className="card-title">{a?.name || 'Activity'}</div>
-                  <div className="card-meta">{a?.category || 'activity'} • {a?.duration ?? 1}h • ⭐ {a?.rating ?? 0}</div>
-                  <div className="card-sub">{a?.location?.name || 'Location'}, {a?.location?.city || ''}</div>
-                  {entry && (
-                    <div className="card-time">
-                      {entry.unavailable ? (
-                        <span className="time-badge unavailable">No slot (closed/time limit)</span>
-                      ) : (
-                        <>
-                          {entry.travelMin > 0 && (
-                            <span className="time-badge travel">+{entry.travelMin}m travel</span>
-                          )}
-                          {day.schedule?.entries?.[itemIdx - 1]?.lunch && (
-                            <span className="time-badge lunch">Lunch {minutesToLabel(day.schedule.entries[itemIdx - 1].start)} – {minutesToLabel(day.schedule.entries[itemIdx - 1].end)}</span>
-                          )}
-                          <span className="time-badge">{minutesToLabel(entry.start)} – {minutesToLabel(entry.end)}</span>
-                        </>
-                      )}
+              {day.schedule?.entries?.map((entry, entryIdx) => {
+                if (entry.lunch) {
+                  // Render lunch as a separate card (matching breakfast style)
+                  return (
+                    <div key={`lunch-${entryIdx}`} className="card-time lunch-card">
+                      <span className="time-badge lunch">Lunch {minutesToLabel(entry.start)} – {minutesToLabel(entry.end)}</span>
                     </div>
-                  )}
-                  <div className="card-actions">
-                    {itemIdx > 0 && (
-                      <button className="mini-btn" onClick={() => onSwapWithinDay(dayIdx, itemIdx, itemIdx - 1)}>↑</button>
-                    )}
-                    {itemIdx < day.items.length - 1 && (
-                      <button className="mini-btn" onClick={() => onSwapWithinDay(dayIdx, itemIdx, itemIdx + 1)}>↓</button>
-                    )}
-                  </div>
-                </div>
-              )})}
+                  )
+                } else if (entry.activity) {
+                  // Render activity card
+                  const a = entry.activity
+                  const key = a?._id || a?.id || `${a?.name || 'item'}-${entryIdx}`
+                  return (
+                    <div
+                      key={key}
+                      className="planner-card"
+                      draggable
+                      onDragStart={() => onDragStart(dayIdx, day.items.indexOf(a))}
+                    >
+                      <div className="card-title">{a?.name || 'Activity'}</div>
+                      <div className="card-meta">{a?.category || 'activity'} • {a?.duration ?? 1}h • ⭐ {a?.rating ?? 0}</div>
+                      <div className="card-sub">{a?.location?.name || 'Location'}, {a?.location?.city || ''}</div>
+                      <div className="card-time">
+                        {entry.remainingTime !== undefined ? (
+                          <>
+                            {entry.travelMin > 0 && (
+                              <span className="time-badge travel">+{entry.travelMin}m travel</span>
+                            )}
+                            <span className="time-badge">{minutesToLabel(entry.start)} – {minutesToLabel(entry.end)}</span>
+                            <span className="time-badge warning">
+                              ⏰ {Math.ceil(entry.remainingTime / 60)}h remaining until 9PM
+                            </span>
+                            {entry.timeWarning && (
+                              <span className="time-badge warning">
+                                ⚠️ {Math.ceil(entry.timeWarning.shortfall / 60)}h short of full duration
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {entry.travelMin > 0 && (
+                              <span className="time-badge travel">+{entry.travelMin}m travel</span>
+                            )}
+                            <span className="time-badge">{minutesToLabel(entry.start)} – {minutesToLabel(entry.end)}</span>
+                            {entry.timeWarning && (
+                              <span className="time-badge warning">
+                                ⚠️ {Math.ceil(entry.timeWarning.shortfall / 60)}h short of 9PM
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className="card-actions">
+                        {day.items.indexOf(a) > 0 && (
+                          <button className="mini-btn" onClick={() => onSwapWithinDay(dayIdx, day.items.indexOf(a), day.items.indexOf(a) - 1)}>↑</button>
+                        )}
+                        {day.items.indexOf(a) < day.items.length - 1 && (
+                          <button className="mini-btn" onClick={() => onSwapWithinDay(dayIdx, day.items.indexOf(a), day.items.indexOf(a) + 1)}>↓</button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
+                return null
+              })}
               {/* Dinner badge */}
               {day.schedule?.dinner && (
-                <div className="card-time" style={{marginTop: '6px'}}>
+                <div className="card-time dinner-card">
                   <span className="time-badge dinner">Dinner {minutesToLabel(day.schedule.dinner.start)} – {minutesToLabel(day.schedule.dinner.end)}</span>
                 </div>
               )}
@@ -465,6 +544,20 @@ export default function ItineraryPlanner() {
             </div>
           </div>
         ))}
+      </div>
+      
+      {/* Notes Section */}
+      <div className="notes-section">
+        <h3>📝 Trip Notes</h3>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Add your personal notes, reminders, or additional information about this trip..."
+          className="notes-textarea"
+        />
+        <div className="notes-info">
+          <small>These notes will be included when you export the trip link.</small>
+        </div>
       </div>
     </div>
   )

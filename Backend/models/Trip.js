@@ -103,7 +103,7 @@ const tripSchema = new mongoose.Schema({
     actual: Number,
     currency: {
       type: String,
-      default: 'USD'
+      default: 'INR'
     }
   },
   notes: String,

@@ -25,12 +25,35 @@
   min-height: 300px;
   display: flex;
   flex-direction: column;
+  transition: all 0.2s ease;
+}
+
+.planner-column.drag-over {
+  border: 2px dashed #3b82f6;
+  background: #eff6ff;
+  transform: scale(1.02);
+}
+
+.planner-column.full {
+  border-color: #fbbf24;
+  background: #fffbeb;
+}
+
+.planner-column.full.drag-over {
+  border: 2px dashed #f59e0b;
+  background: #fef3c7;
 }
 
 .column-header {
   font-weight: 700;
   padding: 0.75rem 1rem;
   border-bottom: 1px solid #e5e7eb;
+}
+
+.full-indicator {
+  color: #f59e0b;
+  font-size: 0.8em;
+  font-weight: 500;
 }
 
 .column-body {
@@ -46,10 +69,13 @@
   padding: 0.75rem;
   background: #fff;
   cursor: grab;
+  transition: all 0.2s ease;
 }
 
 .planner-card:active {
   cursor: grabbing;
+  transform: rotate(2deg);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .card-title {
@@ -96,10 +122,66 @@
   border-color: #fee2e2;
 }
 
+.time-badge.warning {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+  font-weight: 600;
+}
+
 .time-badge.lunch {
   background: #fff7ed;
   color: #9a3412;
   border-color: #ffedd5;
+}
+
+/* Meal Card Styling - Yellow for Lunch, Blue for Breakfast/Dinner */
+.lunch-card {
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  text-align: center;
+}
+
+.lunch-card .time-badge.lunch {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fde68a;
+  font-weight: 500;
+}
+
+.breakfast-card {
+  background: #ecfeff;
+  border: 1px solid #cffafe;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  text-align: center;
+}
+
+.breakfast-card .time-badge.breakfast {
+  background: #ecfeff;
+  color: #155e75;
+  border-color: #cffafe;
+  font-weight: 500;
+}
+
+.dinner-card {
+  background: #ecfeff;
+  border: 1px solid #cffafe;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin: 0.5rem 0;
+  text-align: center;
+}
+
+.dinner-card .time-badge.dinner {
+  background: #ecfeff;
+  color: #155e75;
+  border-color: #cffafe;
+  font-weight: 500;
 }
 
 .time-badge.breakfast {
@@ -138,8 +220,57 @@
   border-radius: 10px;
 }
 
+/* Notes Section */
+.notes-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.notes-section h3 {
+  margin: 0 0 1rem 0;
+  color: #1e293b;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: vertical;
+  background: white;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.notes-info {
+  margin-top: 0.5rem;
+  color: #64748b;
+}
+
+.notes-info small {
+  font-size: 0.85rem;
+}
+
 @media (max-width: 768px) {
   .planner-grid { padding: 1rem; }
+  .notes-section {
+    margin-top: 1.5rem;
+    padding: 1rem;
+  }
 }
 
 

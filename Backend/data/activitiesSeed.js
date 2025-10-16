@@ -856,7 +856,7 @@ const activitiesData = [
       country: 'usa',
       coordinates: { lat: 40.7829, lng: -73.9654 }
     },
-    cost: { amount: 0, currency: 'USD', type: 'free' },
+    cost: { amount: 0, currency: 'INR', type: 'free' },
     rating: 4.7,
     isPopular: true,
     openingHours: {
@@ -884,7 +884,7 @@ const activitiesData = [
       country: 'usa',
       coordinates: { lat: 40.7794, lng: -73.9632 }
     },
-    cost: { amount: 30, currency: 'USD', type: 'paid' },
+    cost: { amount: 30, currency: 'INR', type: 'paid' },
     rating: 4.6,
     isPopular: true,
     openingHours: {
@@ -916,7 +916,7 @@ const activitiesData = [
       country: 'usa',
       coordinates: { lat: 40.7580, lng: -73.9855 }
     },
-    cost: { amount: 0, currency: 'USD', type: 'free' },
+    cost: { amount: 0, currency: 'INR', type: 'free' },
     rating: 4.2,
     isPopular: true,
     tags: ['entertainment', 'shopping', 'lights', 'broadway', 'tourist'],
